@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "tickets.apps.TicketsConfig",
     "djangoql",
     "import_export",
+    'rest_framework',
+
     
 ]
 
