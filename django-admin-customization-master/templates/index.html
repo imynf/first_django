@@ -70,26 +70,59 @@
         <section class="projects-section bg-light" id="projects">
             <div class="container px-4 px-lg-5">
                 <!-- Featured Project Row-->
-                
-                {% for concert in concerts %}
-                <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
-                    <div class="col-xl-8 col-lg-7">
-                        <h4>{{ concert.name }}</h4>
-                    </div>
-                    <div class="col-xl-4 col-lg-5">
-                        <div class="featured-text text-center text-lg-left">
-                            
-                        <!-- 添加 Concert 时间  -->
-                            <p class="text-black-50 mb-0"> {{ concert.starts_at }}</p>                          
+                <div class="accordion" style="cursor: pointer;">
+                    {% for concert in concerts %}
+                        
+                        <div class="accordion-item">
+                            <div class="accordion-title">
+                                <h4 class="concert-name">{{ concert.name }}</h4>
+                                <div class="text-black-50 mb-0">{{ concert.starts_at }}</div>
+                            </div>
+                            <div class="accordion-content" style="display: none;">
+                                <ul>
+                                    <li>Description: {{ concert.description }}</li>
+                                    <li>Categories: {{ concert.categories }}</li>
+                                    <li>Venue: {{ concert.venue }}</li>
+                                    <li>Starts at: {{ concert.starts_at }}</li>
+                                    <li>Price: {{ concert.price }}</li>
+                                    <li>Tickets left: {{ concert.tickets_left }}</li>
+
+                                    <div class="buyTicket" data-buy={{ concert.id }}>BUY NOW</div>
+                                </ul>
+                                <div class="buying-details" data-detail={{ concert.id }} style="display: none;">
+                                    <form action="{% url 'purchase_ticket' %}" method="post" class="purchase-form">
+                                        {% csrf_token %}
+                                        
+                                        <input type="hidden" name="concert_name" id="concert_name" value="{{ concert.name }}">
+                                        <input type="hidden" name="venue_concert_name" value="{{ concert.venue }}:{{ concert.name }}">
+                                        
+                                        <label for="first_name">First Name:</label>
+                                        <input type="text" id="first_name" name="first_name" required><br>
+                                        <label for="last_name">Last Name:</label>
+                                        <input type="text" id="last_name" name="last_name" required><br>
+                                        <label>Combined Name (for testing):</label>
+                                        <input type="text" value="{{ first_name }} {{ last_name }}" readonly><br>
+                                        <input type="hidden" name="customer_full_name" value="{{ first_name }}{{ last_name }}">
+                                        <!--<input type="hidden" name="customer_full_name" value="{{ request.POST.first_name }}{{ request.POST.last_name }}">-->
+                                        <label for="payment_method">Payment Method:</label>
+                                        <select id="paymentMethod" name="payment_method">
+                                            <option value="CC">Credit Card</option>
+                                            <option value="DC">Debit Card</option>
+                                            <option value="ET">Ethereum</option>
+                                            <option value="BC">Bitcoin</option>
+                                        </select><br><br>
+                                        <button type="submit">Purchase Ticket</button>
+                                        
+                                    </form>
+                                </div>
+                            </div>
                         </div>
-                            
-                    </div>
-                </div>            
-                {% endfor %}
-                
-                
+                        
+                    {% endfor %}
+                </div>
             </div>
         </section>
+        
         
         <!-- Signup-->
         <section class="signup-section" id="signup">
@@ -189,5 +222,70 @@
         <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
         <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
         <script src="{% static 'modal.js' %}"></script>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+        <script>
+            $(function(){
+                $('.concert-details').hide();
+                $('.concert-name').click(function(){
+                    $(this).next('.concert-details').slideToggle();
+                });
+            });
+        </script>
+        <script>
+            $(document).ready(function() {
+                // Get concert data from backend
+                $.ajax({
+                    url: '/api/concerts/',  // Assuming you have an API endpoint to get concerts
+                    type: 'GET',
+                    success: function(response) {
+                        // Populate concert options in select dropdown
+                        $.each(response, function(index, concert) {
+                            $('#concertSelect').append($('<option>', {
+                                value: concert.name,
+                                text: concert.name
+                            }));
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        </script>
+        
+        <script>
+            $(document).ready(function() {
+                $('.buyTicket').click(function(event) {
+                    let buyId = event.target.dataset.buy;
+                    let details = document.querySelectorAll(".buying-details");
+                    details.forEach(e=>{
+                        let detailId = e.dataset.detail;
+                        if(detailId == buyId){
+                            $(e).slideToggle();
+                        }
+                    })
+
+                    // // Hide all other .buying-details elements
+                    // $('.buying-details').slideUp();
+                    
+                    // // Find the parent .concert-details element
+                    // var concertDetails = $(this).closest('.concert-details');
+                    // // Find the .buying-details element within the same parent
+                    // var buyingDetails = concertDetails.find('.buying-details');
+                    
+                    // // Slide toggle the buying details of the clicked concert
+                    // buyingDetails.slideToggle();
+                });
+
+                $('.accordion-title').click(function() {
+                    // Hide all other .accordion-content elements
+                    $('.accordion-content').not($(this).next('.accordion-content')).slideUp();
+                    // Slide toggle the content of the clicked accordion item
+                    $(this).next('.accordion-content').slideToggle();
+                });
+            });
+        </script>
     </body>
 </html>

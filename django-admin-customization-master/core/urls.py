@@ -18,12 +18,16 @@ from django.contrib import admin
 from django.urls import path
 from tickets import views
 
+
+
 admin.site.site_title = "TicketsPlus site admin"
 admin.site.site_header = "TicketsPlus administration"
 admin.site.index_title = "Site administration"
 # https://github.com/django/django/blob/main/django/contrib/admin/sites.py
 
 urlpatterns = [
-    path("home/",views.home),
+    path("home/",views.home, name='home'),
     path("secretadmin/", admin.site.urls),
+    path('purchase-ticket/', views.purchase_ticket, name='purchase_ticket'),
+    path('purchase-success/', views.ticket_purchase_success, name='ticket_purchase_success'),
 ]

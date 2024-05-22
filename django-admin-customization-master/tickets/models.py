@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Venue(models.Model):
@@ -66,3 +68,10 @@ class Ticket(models.Model):
 
     def __str__(self):
         return f"{self.customer_full_name} ({self.concert})"
+    
+@receiver(post_save, sender=Ticket)
+def update_tickets_left(sender, instance, created, **kwargs):
+    if created:
+        instance.concert.tickets_left -= 1
+        instance.concert.save(update_fields=['tickets_left'])
+
